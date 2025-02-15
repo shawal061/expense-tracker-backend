@@ -12,6 +12,10 @@ let expenses = [
     { id: 1, amount: 50, category: "Food", description: "Lunch", date: "2025-02-15" },
 ];
 
+app.get("/", (req, res) => {
+    res.send("Welcome to the Expense Tracker API!");
+});
+
 // Get all expenses
 app.get("/expenses", (req, res) => {
     res.json(expenses);
