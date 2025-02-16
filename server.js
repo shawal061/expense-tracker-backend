@@ -1,34 +1,52 @@
 const express = require("express");
 const cors = require("cors");
+const fs = require("fs");
 
 const app = express();
 const PORT = 5000;
+const FILE_PATH = "expenses.json"; // JSON file for storing data
 
 app.use(cors());
-app.use(express.json()); // Middleware to parse JSON requests
+app.use(express.json());
 
-// Simulated database (array for now)
-let expenses = [
-    { id: 1, amount: 50, category: "Food", description: "Lunch", date: "2025-02-15" },
-];
+// Load expenses from file (or create an empty array if file doesn't exist)
+const loadExpenses = () => {
+    try {
+        const data = fs.readFileSync(FILE_PATH, "utf8");
+        return JSON.parse(data);
+    } catch (error) {
+        return []; // Return empty array if file is missing or corrupted
+    }
+};
 
-app.get("/", (req, res) => {
-    res.send("Welcome to the Expense Tracker API!");
-});
+// Save expenses to file
+const saveExpenses = (expenses) => {
+    fs.writeFileSync(FILE_PATH, JSON.stringify(expenses, null, 2), "utf8");
+};
 
-// Get all expenses
+let expenses = loadExpenses(); // Load initial data
+
+// GET /expenses - Retrieve all expenses
 app.get("/expenses", (req, res) => {
     res.json(expenses);
 });
 
-// Add a new expense
+// POST /expenses - Add a new expense
 app.post("/expenses", (req, res) => {
-    const { amount, category, description, date } = req.body;
-    const newExpense = { id: expenses.length + 1, amount, category, description, date };
-    expenses.push(newExpense);
+    const newExpense = {
+        id: expenses.length + 1,
+        amount: Number(req.body.amount), // Ensure amount is a number
+        category: req.body.category,
+        description: req.body.description,
+        date: req.body.date,
+    };
+
+    expenses.push(newExpense); // Add to array
+    saveExpenses(expenses); // Save to file
     res.json(newExpense);
 });
 
+// Start server
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });
